@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Мега-Аркада — игры с ботами</title>
+<style>
+:root{--bg:#0b0d1c;--panel:#171a35;--panel2:#202449;--pink:#ff648d;--purple:#8b7cff;--mint:#63f2bd;--text:#f7f7ff;--muted:#b7bddb;--line:#414878}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(ellipse at top,#25204b 0,#0b0d1c 55%);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,sans-serif}
+header{text-align:center;padding:28px 16px 22px;background:linear-gradient(120deg,#191b39dd,#30204bdd);border-bottom:1px solid var(--line)}
+h1{margin:0;font-size:clamp(1.6rem,4vw,2.6rem);background:linear-gradient(90deg,var(--pink),#c3a3ff,var(--mint));color:transparent;background-clip:text}
+header p{color:var(--muted);margin:10px 0 0}
+main{width:min(1100px,100%);padding:22px 16px 140px;margin:auto}
+.panel{background:#171a35eF;border:1px solid var(--line);border-radius:20px;padding:clamp(16px,3vw,28px);box-shadow:0 16px 40px #0005}
+#menu h2{text-align:center;color:#ff9ab4}
+.games{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr));gap:16px;margin-top:20px}
+.game-card{background:linear-gradient(145deg,#22264c,#171a35);border:1px solid #555b98;border-radius:17px;padding:20px;display:flex;flex-direction:column;gap:12px;min-height:190px;transition:.2s}
+.game-card:hover{transform:translateY(-4px);border-color:var(--pink);box-shadow:0 10px 25px #ff648d22}
+.game-card h3{margin:0;color:#ff8eae}.game-card p{margin:0;color:var(--muted);line-height:1.5;flex:1}
+button,input{font:inherit}
+button{border:0;cursor:pointer;color:white}
+.btn{border-radius:12px;padding:11px 17px;font-weight:700;background:linear-gradient(110deg,var(--purple),var(--pink));box-shadow:0 5px 14px #0003;transition:transform .15s,filter .15s}
+.btn:hover{filter:brightness(1.1);transform:translateY(-1px)}.btn:active{transform:scale(.98)}
+.btn.secondary{background:#34395f;border:1px solid #5b6194;box-shadow:none}.btn.small{padding:8px 12px}
+.screen{display:none;max-width:850px;margin:0 auto}.screen.active{display:block;animation:appear .25s ease}
+@keyframes appear{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+.screen h2{margin:8px 0 18px;color:#ff91af}
+.topline{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.track{background:#0e1025;border:1px solid #34395e;border-radius:13px;padding:13px;margin:16px 0}
+.racer{display:grid;grid-template-columns:100px 1fr 44px;align-items:center;gap:10px;margin:8px 0;font-size:.9rem}
+.bar{height:10px;border-radius:10px;background:#292d4c;overflow:hidden}.bar span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--mint),#b4ffdc);transition:width .3s}
+.racer.bot .bar span{background:linear-gradient(90deg,var(--pink),#ffb1c7)}
+.muted{color:var(--muted)}.feedback{min-height:26px;color:var(--mint);text-align:center;margin:12px 0}
+.center{text-align:center}.input{max-width:100%;width:180px;padding:12px;border-radius:10px;background:#0c0e20;border:1px solid #5c62a0;color:white;outline:none}.input:focus{border-color:var(--pink)}
+.options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:18px}
+.option{background:#262b53;border:1px solid #535b93;border-radius:12px;padding:13px;text-align:left;overflow-wrap:anywhere}.option:hover{background:#393e73}.option:disabled{cursor:default;opacity:.8}
+.board4{display:grid;grid-template-columns:repeat(4,minmax(45px,70px));gap:5px;justify-content:center;margin:22px auto}
+.sudoku-cell{width:100%;aspect-ratio:1;text-align:center;border:1px solid #454b7c;border-radius:7px;background:#0e1025;color:white;font-weight:700;font-size:1.2rem;min-width:0}
+.sudoku-cell:disabled{background:#34395c;color:#d5d8f0}.sudoku-cell:focus{outline:2px solid var(--pink)}
+.word{display:flex;justify-content:center;gap:7px;flex-wrap:wrap;margin:24px 0}.letter{width:clamp(30px,8vw,46px);height:52px;display:grid;place-items:center;background:#0c0e20;border:2px solid var(--purple);border-radius:8px;font-size:1.4rem;font-weight:800}
+.tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;max-width:350px;margin:22px auto}
+.tile{aspect-ratio:1;border-radius:10px;background:linear-gradient(135deg,#8072f8,#5148ad);font-size:clamp(1rem,4vw,1.7rem);font-weight:800;box-shadow:inset 0 -4px #0002}
+.tile:hover{filter:brightness(1.15)}.tile.empty{background:#0d0f22;border:1px dashed #393d62;box-shadow:none;cursor:default}
+.status{color:var(--muted);display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+#companion{position:fixed;right:16px;bottom:16px;z-index:10;display:flex;gap:12px;align-items:center;width:min(320px,calc(100vw - 32px));padding:12px;background:#24284e;border:2px solid var(--pink);border-radius:18px;box-shadow:0 10px 35px #0008}
+#avatar{width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,#ff7fa1,#aa8cff);display:grid;place-items:center;font-size:27px;flex-shrink:0;animation:float 2s ease-in-out infinite}
+@keyframes float{50%{transform:translateY(-4px)}}#speech{font-size:.85rem;line-height:1.35}
+#sound-toggle{position:fixed;left:14px;bottom:18px;z-index:11}
+#scare{display:none;position:fixed;inset:0;z-index:100;background:#030207;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:20px}
+#scare.active{display:flex;animation:shake .12s infinite}
+#scare .face{font-size:clamp(5rem,25vw,12rem);filter:drop-shadow(0 0 24px red)}
+#scare .scaretext{font-weight:1000;letter-spacing:.12em;color:#ff174f;font-size:clamp(1rem,4vw,2rem);text-shadow:0 0 20px red}
+@keyframes shake{0%{transform:translate(3px,2px)}25%{transform:translate(-4px,-2px)}50%{transform:translate(-2px,4px)}75%{transform:translate(4px,-3px)}100%{transform:translate(0,0)}}
+footer{text-align:center;color:#737aab;font-size:.8rem;padding:20px}
+@media(max-width:540px){.options{grid-template-columns:1fr}.racer{grid-template-columns:78px 1fr 35px;font-size:.8rem}#companion{bottom:68px}#sound-toggle{bottom:12px}.panel{border-radius:16px}}
+</style>
+</head>
+<body>
+<header><h1>🎮 Мега-Аркада</h1><p>Шесть мини-игр, боты-соперники и Луна — твой игровой компаньон</p></header>
+<main>
+<section id="menu" class="panel">
+<h2>Выбирай испытание!</h2>
+<p class="muted center">Успей раньше бота. Звуки включаются после первого нажатия — так работают браузеры.</p>
+<div class="games">
+<article class="game-card"><h3>🎯 Угадай число</h3><p>Найди число от 1 до 100 по подсказкам быстрее Боба.</p><button class="btn" onclick="startGame('guess')">Играть</button></article>
+<article class="game-card"><h3>🧩 Мини-судоку</h3><p>Заполни сетку 4×4 цифрами от 1 до 4 без повторов в строках, столбцах и блоках.</p><button class="btn" onclick="startGame('sudoku')">Играть</button></article>
+<article class="game-card"><h3>💻 HTML-викторина</h3><p>Пять вопросов о тегах и атрибутах HTML. Проверь свои знания.</p><button class="btn" onclick="startGame('htmlQuiz')">Играть</button></article>
+<article class="game-card"><h3>🎡 Поле чудес</h3><p>Угадывай буквы в словах о веб-технологиях.</p><button class="btn" onclick="startGame('field')">Играть</button></article>
+<article class="game-card"><h3>💰 Миллионер</h3><p>Ответь правильно на вопросы и доберись до миллиона.</p><button class="btn" onclick="startGame('millionaire')">Играть</button></article>
+<article class="game-card"><h3>🔢 Игра «15»</h3><p>Собери числа по порядку, передвигая плитки в пустую клетку.</p><button class="btn" onclick="startGame('fifteen')">Играть</button></article>
+</div></section>
+
+<section id="guess" class="screen panel">
+<div class="topline"><button class="btn secondary" onclick="goMenu()">← В меню</button><span class="muted" id="guess-attempts">Попыток: 0</span></div>
+<h2>🎯 Угадай число</h2><p id="guess-hint" class="center">Я загадала число от 1 до 100.</p>
+<div class="track"><div class="racer"><span>Ты</span><div class="bar"><span id="guess-playerbar"></span></div><span id="guess-playerpct">0%</span></div><div class="racer bot"><span>🤖 Боб</span><div class="bar"><span id="guess-botbar"></span></div><span id="guess-botpct">0%</span></div></div>
+<div class="center"><input id="guess-input" class="input" type="number" min="1" max="100" placeholder="Число 1–100"><button class="btn" onclick="submitGuess()">Угадать</button></div><div id="guess-feedback" class="feedback"></div>
+</section>
+
+<section id="sudoku" class="screen panel">
+<div class="topline"><button class="btn secondary" onclick="goMenu()">← В меню</button><span class="muted">Сэм уже решает!</span></div><h2>🧩 Мини-судоку 4×4</h2><p class="muted center">В каждой строке, колонке и квадрате 2×2 цифры 1–4 не повторяются.</p>
+<div class="track"><div class="racer"><span>Ты</span><div class="bar"><span id="sudoku-playerbar"></span></div><span id="sudoku-playerpct">0%</span></div><div class="racer bot"><span>🤖 Сэм</span><div class="bar"><span id="sudoku-botbar"></span></div><span id="sudoku-botpct">0%</span></div></div>
+<div id="sudoku-board" class="board4"></div><div class="center"><button class="btn" onclick="checkSudoku()">Проверить решение</button><button class="btn secondary" onclick="startGame('sudoku')">Заново</button></div><div id="sudoku-feedback" class="feedback"></div>
+</section>
+
+<section id="htmlQuiz" class="screen panel">
+<div class="topline"><button class="btn secondary" onclick="goMenu()">← В меню</button><span id="html-step" class="muted">Вопрос 1/5</span></div><h2>💻 HTML-викторина</h2>
+<div class="track"><div class="racer"><span>Ты</span><div class="bar"><span id="html-playerbar"></span></div><span id="html-playerpct">0%</span></div><div class="racer bot"><span>🤖 Джип</span><div class="bar"><span id="html-botbar"></span></div><span id="html-botpct">0%</span></div></div>
+<div id="html-question" class="question center"></div><div id="html-options" class="options"></div><div id="html-feedback" class="feedback"></div>
+</section>
+
+<section id="field" class="screen panel">
+<div class="topline"><button class="btn secondary" onclick="goMenu()">← В меню</button><span class="muted">Соперник: Якуб</span></div><h2>🎡 Поле чудес</h2><div id="field-hint" class="question center"></div>
+<div class="track"><div class="racer"><span>Ты</span><div class="bar"><span id="field-playerbar"></span></div><span id="field-playerpct">0%</span></div><div class="racer bot"><span>🤖 Якуб</span><div class="bar"><span id="field-botbar"></span></div><span id="field-botpct">0%</span></div></div>
+<div id="field-word" class="word"></div><div class="center"><input id="field-input" class="input" maxlength="1" placeholder="Буква" style="width:100px;text-transform:uppercase"><button class="btn" onclick="guessLetter()">Открыть</button><button class="btn secondary" onclick="solveWord()">Угадать слово</button></div><div id="field-feedback" class="feedback"></div>
+</section>
+
+<section id="millionaire" class="screen panel">
+<div class="topline"><button class="btn secondary" onclick="goMenu()">← В меню</button><span id="mil-step" class="muted">Вопрос 1/5</span></div><h2>💰 Кто хочет стать миллионером?</h2><div class="status"><span id="mil-prize">Текущий приз: 0 ₽</span><span>Бот: Галкин</span></div>
+<div class="track"><div class="racer"><span>Ты</span><div class="bar"><span id="mil-playerbar"></span></div><span id="mil-playerpct">0%</span></div><div class="racer bot"><span>🤖 Галкин</span><div class="bar"><span id="mil-botbar"></span></div><span id="mil-botpct">0%</span></div></div>
+<div id="mil-question" class="question center"></div><div id="mil-options" class="options"></div><div id="mil-feedback" class="feedback"></div>
+</section>
+
+<section id="fifteen" class="screen panel">
+<div class="topline"><button class="btn secondary" onclick="goMenu()">← В меню</button><span id="fifteen-moves" class="muted">Ходы: 0</span></div><h2>🔢 Головоломка «15»</h2><p class="muted center">Нажимай на плитку рядом с пустой клеткой. Бот тоже спешит!</p>
+<div class="track"><div class="racer"><span>Ты</span><div class="bar"><span id="fifteen-playerbar"></span></div><span id="fifteen-playerpct">0%</span></div><div class="racer bot"><span>🤖 Нуми</span><div class="bar"><span id="fifteen-botbar"></span></div><span id="fifteen-botpct">0%</span></div></div>
+<div id="fifteen-board" class="tiles"></div><div class="center"><button class="btn secondary" onclick="startGame('fifteen')">Перемешать заново</button></div><div id="fifteen-feedback" class="feedback"></div>
+</section>
+</main>
+<footer>Сделано для хорошего настроения ✦ Играй, учись и побеждай!</footer>
+
+<div id="companion"><div id="avatar">🐱</div><div id="speech">Привет! Я Луна 🌙. Выбирай игру — я буду болеть за тебя!</div></div>
+<button id="sound-toggle" class="btn secondary small" onclick="toggleSound()">🔊 Звук: вкл.</button>
+<div id="scare"><div class="face">☠️</div><div class="scaretext">ТЫ ПРОИГРАЛ...</div><p>Бот оказался быстрее!</p></div>
+
+<script>
+const $=id=>document.getElementById(id);
+let currentGame=null, botTimer=null, botProgress=0, audioCtx=null, soundOn=true, musicTimer=null, musicIndex=0, gameOver=false;
+const phrases=["Мяу! Ты справишься! 🐾","Ого, бот ускоряется — не сдавайся!","Я верю в тебя! ✨","Какой умный ход! Продолжай!","Победа уже где-то рядом!","Мур-мур, сосредоточься!"];
+function say(text){$('speech').textContent=text}
+function initAudio(){if(!soundOn)return;try{if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume()}catch(e){}}
+function tone(freq,duration=.12,type='sine',volume=.06,delay=0){if(!soundOn)return;initAudio();if(!audioCtx)return;const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type=type;o.frequency.setValueAtTime(freq,audioCtx.currentTime+delay);g.gain.setValueAtTime(volume,audioCtx.currentTime+delay);g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+delay+duration);o.connect(g);g.connect(audioCtx.destination);o.start(audioCtx.currentTime+delay);o.stop(audioCtx.currentTime+delay+duration+.02)}
+function sfx(kind){if(!soundOn)return;if(kind==='click')tone(650,.07,'sine',.04);if(kind==='correct'){[523,659,784].forEach((n,i)=>tone(n,.18,'triangle',.07,i*.11))}if(kind==='win'){[392,494,587,784].forEach((n,i)=>tone(n,.3,'triangle',.08,i*.16))}if(kind==='lose'){tone(180,.7,'sawtooth',.12);tone(95,1,'square',.07,.25)}}
+function startMusic(){if(!soundOn||musicTimer)return;const notes=[261.63,329.63,392,329.63,293.66,349.23,440,349.23];musicTimer=setInterval(()=>{if(soundOn){tone(notes[musicIndex++%notes.length],.22,'sine',.018)}},360)}
+function stopMusic(){if(musicTimer){clearInterval(musicTimer);musicTimer=null}}
+function toggleSound(){soundOn=!soundOn;$('sound-toggle').textContent=soundOn?'🔊 Звук: вкл.':'🔇 Звук: выкл.';if(soundOn){initAudio();startMusic();say('Звук снова включён! Мяу!')}else stopMusic()}
+setInterval(()=>{if(!currentGame)say(phrases[Math.floor(Math.random()*phrases.length)])},9000);
+function stopBot(){if(botTimer){clearInterval(botTimer);botTimer=null}}
+function resetRace(game){botProgress=0;setBar(game,'bot',0);setBar(game,'player',0);stopBot()}
+function setBar(game,who,pct){const id=game+'-'+who+'bar';if($(id))$(id).style.width=Math.max(0,Math.min(100,pct))+'%';const label=$(game+'-'+who+'pct');if(label)label.textContent=Math.round(Math.max(0,Math.min(100,pct)))+'%'}
+function startBot(game,stepMs=1000,step=10){stopBot();botProgress=0;botTimer=setInterval(()=>{if(gameOver||currentGame!==game)return;botProgress=Math.min(100,botProgress+step+Math.random()*step*.55);setBar(game,'bot',botProgress);if(botProgress>=100)loseGame()},stepMs)}
+function goMenu(){stopBot();stopMusic();currentGame=null;gameOver=true;document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));$('menu').style.display='block';$('menu').classList.add('active');$('scare').classList.remove('active');say('Куда отправимся теперь? Я готова! 🐱')}
+function startGame(name){initAudio();sfx('click');gameOver=false;stopBot();stopMusic();currentGame=name;$('menu').style.display='none';$('menu').classList.remove('active');document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.id===name));$('scare').classList.remove('active');startMusic();say('Удачи! Следи за ботом, но не забывай думать!');if(name==='guess')initGuess();if(name==='sudoku')initSudoku();if(name==='htmlQuiz')initHtml();if(name==='field')initField();if(name==='millionaire')initMil();if(name==='fifteen')initFifteen()}
+function winGame(message='Победа! Ты обошёл бота!'){if(gameOver)return;gameOver=true;stopBot();sfx('win');say('УРААА! Ты победил! 🎉🐾');setTimeout(()=>{if(currentGame&&!$('scare').classList.contains('active'))alert('🎉 '+message)},50)}
+function loseGame(){if(gameOver)return;gameOver=true;stopBot();stopMusic();sfx('lose');say('Ой-ой... Бот победил. Попробуем ещё раз?');$('scare').classList.add('active');setTimeout(()=>{$('scare').classList.remove('active');if(currentGame){const old=currentGame;currentGame=null;document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));$('menu').style.display='block';$('menu').classList.add('active')}say('Ничего, следующая игра будет за тобой! 💜')},1500)}
+function progress(game,pct){setBar(game,'player',pct)}
+// Guess number
+let target=0,attempts=0;
+function initGuess(){resetRace('guess');target=1+Math.floor(Math.random()*100);attempts=0;$('guess-attempts').textContent='Попыток: 0';$('guess-hint').textContent='Я загадала число от 1 до 100.';$('guess-feedback').textContent='';$('guess-input').value='';startBot('guess',1050,8)}
+function submitGuess(){if(gameOver)return;initAudio();const v=Number($('guess-input').value);if(!Number.isInteger(v)||v<1||v>100){$('guess-feedback').textContent='Введи целое число от 1 до 100.';return}sfx('click');attempts++;$('guess-attempts').textContent='Попыток: '+attempts;progress('guess',Math.min(100,attempts*10));if(v===target){winGame('Ты угадал число '+target+' за '+attempts+' попыток!');return}$('guess-hint').textContent=v<target?'Загаданное число БОЛЬШЕ ↑':'Загаданное число МЕНЬШЕ ↓';$('guess-feedback').textContent='Почти! Пробуй ещё.'}
+$('guess-input').addEventListener('keydown',e=>{if(e.key==='Enter')submitGuess()});
+// Sudoku
+const sudokuPuzzle=[1,0,0,4,0,4,1,0,0,1,4,0,4,0,0,1],sudokuSolution=[1,2,3,4,3,4,1,2,2,1,4,3,4,3,2,1];
+function initSudoku(){resetRace('sudoku');$('sudoku-feedback').textContent='';const board=$('sudoku-board');board.innerHTML='';sudokuPuzzle.forEach((v,i)=>{const input=document.createElement('input');input.className='sudoku-cell';input.type='text';input.inputMode='numeric';input.maxLength=1;input.dataset.index=i;if(v){input.value=v;input.disabled=true}else input.addEventListener('input',()=>{input.value=input.value.replace(/[^1-4]/g,'').slice(0,1)});board.appendChild(input)});startBot('sudoku',1600,12)}
+function checkSudoku(){if(gameOver)return;const cells=[...document.querySelectorAll('.sudoku-cell')];const correct=cells.every((c,i)=>Number(c.value)===sudokuSolution[i]);if(correct){progress('sudoku',100);winGame('Судоку решено верно!')}else{$('sudoku-feedback').textContent='Пока есть ошибки — проверь строки, столбцы и квадраты.';sfx('click');progress('sudoku',Math.min(90,cells.filter((c,i)=>Number(c.value)===sudokuSolution[i]).length/16*100))}}
+// HTML quiz
+const htmlQs=[
+{q:'Какой тег создаёт гиперссылку?',o:['<a>','<link>','<href>','<url>'],a:0},
+{q:'Какой тег — самый крупный заголовок по умолчанию?',o:['<h6>','<header>','<h1>','<head>'],a:2},
+{q:'Какой тег вставляет изображение?',o:['<image>','<img>','<picture-src>','<src>'],a:1},
+{q:'Какой тег создаёт маркированный список?',o:['<ol>','<list>','<ul>','<li>'],a:2},
+{q:'Какой атрибут указывает путь к картинке в <img>?',o:['href','link','src','path'],a:2}];let htmlIdx=0;
+function initHtml(){resetRace('htmlQuiz');htmlIdx=0;$('html-feedback').textContent='';renderHtml();startBot('htmlQuiz',2600,10)}
+function renderHtml(){const q=htmlQs[htmlIdx];if(!q){progress('htmlQuiz',100);winGame('Викторина пройдена без ошибок!');return}$('html-step').textContent=`Вопрос ${htmlIdx+1}/${htmlQs.length}`;$('html-question').textContent=q.q;const box=$('html-options');box.innerHTML='';q.o.forEach((opt,i)=>{const b=document.createElement('button');b.className='option';b.textContent=opt;b.onclick=()=>{if(gameOver)return;sfx('click');if(i===q.a){htmlIdx++;progress('htmlQuiz',htmlIdx/htmlQs.length*100);sfx('correct');$('html-feedback').textContent='Верно! Отличная работа.';setTimeout(()=>{if(!gameOver)renderHtml()},350)}else{$('html-feedback').textContent='Не совсем. Попробуй другой вариант.';b.style.borderColor='#ff648d'}};box.appendChild(b)})}
+// Field of wonders
+const fieldWords=[{w:'СКРИПТ',h:'Сценарий, который выполняет браузер'},{w:'БРАУЗЕР',h:'Программа для просмотра сайтов'},{w:'СЕРВЕР',h:'Компьютер или система, которая отвечает на запросы'},{w:'ПИКСЕЛЬ',h:'Маленькая точка изображения на экране'}];let activeWord,opened=[];
+function initField(){resetRace('field');activeWord=fieldWords[Math.floor(Math.random()*fieldWords.length)];opened=Array(activeWord.w.length).fill(false);$('field-hint').textContent='Подсказка: '+activeWord.h;$('field-feedback').textContent='';$('field-input').value='';renderField();startBot('field',2300,12)}
+function renderField(){const box=$('field-word');box.innerHTML='';[...activeWord.w].forEach((ch,i)=>{const d=document.createElement('div');d.className='letter';d.textContent=opened[i]?ch:'?';box.appendChild(d)});progress('field',opened.filter(Boolean).length/activeWord.w.length*100);if(opened.every(Boolean))winGame('Ты открыл слово: '+activeWord.w)}
+function guessLetter(){if(gameOver)return;const input=$('field-input'),letter=input.value.trim().toLocaleUpperCase('ru-RU');input.value='';if(!letter)return;if(!/^[А-ЯЁ]$/.test(letter)){$('field-feedback').textContent='Введи одну русскую букву.';return}let found=false;[...activeWord.w].forEach((ch,i)=>{if(ch===letter){opened[i]=true;found=true}});if(found){sfx('correct');$('field-feedback').textContent='Есть такая буква!';renderField()}else{$('field-feedback').textContent='Такой буквы нет. Попробуй ещё.';sfx('click')}}
+function solveWord(){if(gameOver)return;const answer=prompt('Какое это слово?');if(answer&&answer.trim().toLocaleUpperCase('ru-RU')===activeWord.w){opened.fill(true);renderField()}else if(answer){$('field-feedback').textContent='Не угадано — попробуй буквы.'}}
+$('field-input').addEventListener('keydown',e=>{if(e.key==='Enter')guessLetter()});
+// Millionaire
+const milQs=[
+{q:'Какой тег создаёт абзац?',o:['<p>','<text>','<par>','<pg>'],a:0,prize:'1 000 ₽'},
+{q:'Что означает CSS?',o:['Computer Style Sheets','Cascading Style Sheets','Creative Style System','Colorful Style Sheets'],a:1,prize:'10 000 ₽'},
+{q:'Какой язык выполняется в браузере?',o:['Python','C++','JavaScript','Java'],a:2,prize:'100 000 ₽'},
+{q:'Как вывести сообщение в консоль JavaScript?',o:['print()','console.log()','echo()','write()'],a:1,prize:'500 000 ₽'},
+{q:'Какой атрибут задаёт уникальный идентификатор HTML-элемента?',o:['class','name','id','key'],a:2,prize:'1 000 000 ₽'}];let milIdx=0;
+function initMil(){resetRace('millionaire');milIdx=0;$('mil-feedback').textContent='';renderMil();startBot('millionaire',3000,10)}
+function renderMil(){if(milIdx>=milQs.length){progress('millionaire',100);winGame('Ты стал миллионером!');return}const q=milQs[milIdx];$('mil-step').textContent=`Вопрос ${milIdx+1}/${milQs.length}`;$('mil-prize').textContent='Приз: '+(milIdx?milQs[milIdx-1].prize:'0 ₽');$('mil-question').textContent=q.q;const box=$('mil-options');box.innerHTML='';q.o.forEach((opt,i)=>{const b=document.createElement('button');b.className='option';b.textContent=opt;b.onclick=()=>{if(gameOver)return;if(i===q.a){sfx('correct');milIdx++;progress('millionaire',milIdx/milQs.length*100);$('mil-feedback').textContent='Правильный ответ!';setTimeout(()=>{if(!gameOver)renderMil()},350)}else{b.style.borderColor='#ff648d';loseGame()}};box.appendChild(b)})}
+// Fifteen puzzle, always shuffled via legal moves so solvable
+let fifteen=[],fifteenMoves=0;
+function initFifteen(){resetRace('fifteen');fifteen=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0];for(let i=0;i<120;i++){const empty=fifteen.indexOf(0),moves=neighbors(empty),pick=moves[Math.floor(Math.random()*moves.length)];[fifteen[empty],fifteen[pick]]=[fifteen[pick],fifteen[empty]]}fifteenMoves=0;$('fifteen-feedback').textContent='';renderFifteen();startBot('fifteen',1900,8)}
+function neighbors(i){const r=Math.floor(i/4),c=i%4,out=[];if(r>0)out.push(i-4);if(r<3)out.push(i+4);if(c>0)out.push(i-1);if(c<3)out.push(i+1);return out}
+function renderFifteen(){const board=$('fifteen-board');board.innerHTML='';fifteen.forEach((v,i)=>{const b=document.createElement('button');b.className='tile'+(!v?' empty':'');b.textContent=v||'';b.disabled=!v;b.onclick=()=>moveTile(i);board.appendChild(b)});$('fifteen-moves').textContent='Ходы: '+fifteenMoves;const correct=fifteen.filter((v,i)=>v===(i===15?0:i+1)).length;progress('fifteen',correct/16*100);if(correct===16)winGame('Головоломка «15» собрана!')}
+function moveTile(i){if(gameOver)return;const empty=fifteen.indexOf(0);if(!neighbors(empty).includes(i))return;[fifteen[i],fifteen[empty]]=[fifteen[empty],fifteen[i]];fifteenMoves++;sfx('click');renderFifteen()}
+function startMusicSafe(){if(soundOn)startMusic()}
+</script>
+</body>
+</html>
